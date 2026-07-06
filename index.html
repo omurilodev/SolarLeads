@@ -137,8 +137,82 @@
   }
 
   /* Layout */
-  .layout{display:grid; grid-template-columns:188px 1fr; gap:0; background:var(--cream-light); border:0.5px solid var(--stone); border-radius:14px; overflow:hidden;}
-  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+  .layout{display:grid; grid-template-columns:188px 1fr; gap:0; background:var(--cream-light); border:0.5px solid var(--stone); border-radius:14px; overflow:hidden; position:relative;}
+
+  .header-actions{display:none;}
+  .hamburger-btn{
+    display:none;
+    align-items:center;
+    gap:8px;
+    background:var(--cream-light);
+    border:1px solid var(--stone);
+    border-radius:8px;
+    padding:9px 14px;
+    cursor:pointer;
+    font-family:var(--body);
+    font-size:12px;
+    font-weight:500;
+    color:var(--navy);
+  }
+  .hamburger-btn span:not(.hamburger-label){
+    display:block;
+    width:16px;
+    height:2px;
+    background:var(--navy);
+    border-radius:2px;
+  }
+  .sidebar-close{display:none;}
+  .sidebar-backdrop{display:none;}
+
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr; border-radius:0; border:none; background:transparent; overflow:visible;}
+    .header-actions{display:flex; gap:10px; width:100%; margin-top:4px;}
+    .header-actions .hamburger-btn{flex:1; justify-content:center;}
+    .hamburger-btn{display:inline-flex;}
+    .connections-panel{display:none;}
+    .connections-panel.open{display:block; margin-bottom:24px;}
+    .source-bar{flex-direction:column; align-items:stretch;}
+    .source-right{flex-direction:column; align-items:stretch;}
+    #sheetUrlInput, #scriptUrlInput{min-width:0; width:100%;}
+    .sidebar{
+      position:fixed;
+      top:0; left:0;
+      width:82%; max-width:300px;
+      height:100vh;
+      z-index:1001;
+      border-right:1px solid var(--stone);
+      border-radius:0 14px 14px 0;
+      transform:translateX(-100%);
+      transition:transform .25s ease;
+      overflow-y:auto;
+      box-shadow:0 0 0 1px var(--stone);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .sidebar-close{
+      display:block;
+      margin:0 16px 14px auto;
+      background:transparent;
+      border:1px solid var(--stone);
+      border-radius:8px;
+      width:30px; height:30px;
+      color:var(--slate);
+      cursor:pointer;
+      font-size:13px;
+    }
+    .sidebar-backdrop{
+      display:block;
+      position:fixed;
+      inset:0;
+      background:rgba(26,37,51,0.45);
+      z-index:1000;
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .2s ease;
+    }
+    .sidebar-backdrop.open{opacity:1; pointer-events:auto;}
+
+    .main{background:var(--cream-light); border:0.5px solid var(--stone); border-radius:14px; overflow:hidden;}
+  }
 
   /* Mobile: table rows become cards */
   @media (max-width:720px){
@@ -408,6 +482,16 @@
       <h1>Dossiê de Leads — <em>Energia Solar</em></h1>
       <p class="meta-line" id="metaLine">Espírito Santo · condomínios, eventos e comércios de alto consumo</p>
     </div>
+    <div class="header-actions">
+      <button class="hamburger-btn" id="menuToggle" aria-label="Abrir filtros" aria-expanded="false" aria-controls="sidebar">
+        <span></span><span></span><span></span>
+        <span class="hamburger-label">Filtros</span>
+      </button>
+      <button class="hamburger-btn" id="connToggle" aria-label="Abrir conexões" aria-expanded="false" aria-controls="connectionsPanel">
+        <span></span><span></span><span></span>
+        <span class="hamburger-label">Conexões</span>
+      </button>
+    </div>
     <div class="stat-row">
       <div class="stat"><span class="num" id="statTotal">0</span><span class="lbl">leads</span></div>
       <div class="stat"><span class="num" id="statContatado">0</span><span class="lbl">contatados</span></div>
@@ -415,46 +499,48 @@
     </div>
   </header>
 
-  <div class="source-bar" id="sourceBar">
-    <div class="source-left">
-      <span class="source-label" id="sourceStatus">Usando dados de exemplo (primeira leva)</span>
-      <span class="source-label" id="syncStatus" style="margin-left:10px;"></span>
+  <div class="connections-panel" id="connectionsPanel">
+    <div class="source-bar" id="sourceBar">
+      <div class="source-left">
+        <span class="source-label" id="sourceStatus">Usando dados de exemplo (primeira leva)</span>
+        <span class="source-label" id="syncStatus" style="margin-left:10px;"></span>
+      </div>
+      <div class="source-right">
+        <input type="text" id="sheetUrlInput" placeholder="Cole aqui o link CSV publicado da sua Google Sheets...">
+        <button class="btn" id="connectBtn">Conectar planilha</button>
+        <button class="btn btn-ghost" id="refreshBtn" title="Rebuscar dados da planilha">↻ Atualizar</button>
+        <button class="btn btn-ghost" id="howtoBtn">Como publicar?</button>
+      </div>
     </div>
-    <div class="source-right">
-      <input type="text" id="sheetUrlInput" placeholder="Cole aqui o link CSV publicado da sua Google Sheets...">
-      <button class="btn" id="connectBtn">Conectar planilha</button>
-      <button class="btn btn-ghost" id="refreshBtn" title="Rebuscar dados da planilha">↻ Atualizar</button>
-      <button class="btn btn-ghost" id="howtoBtn">Como publicar?</button>
+    <div class="source-bar" id="scriptBar" style="border-top:none; border-radius:0;">
+      <div class="source-left">
+        <span class="source-label">Escrever status de volta na planilha (opcional)</span>
+      </div>
+      <div class="source-right">
+        <input type="text" id="scriptUrlInput" placeholder="Cole aqui a URL do Apps Script (termina em /exec)...">
+        <button class="btn btn-ghost" id="connectScriptBtn">Salvar</button>
+      </div>
     </div>
-  </div>
-  <div class="source-bar" id="scriptBar" style="border-top:none; border-radius:0;">
-    <div class="source-left">
-      <span class="source-label">Escrever status de volta na planilha (opcional)</span>
-    </div>
-    <div class="source-right">
-      <input type="text" id="scriptUrlInput" placeholder="Cole aqui a URL do Apps Script (termina em /exec)...">
-      <button class="btn btn-ghost" id="connectScriptBtn">Salvar</button>
-    </div>
-  </div>
 
-  <div class="howto" id="howtoBox" style="display:none;">
-    <p class="howto-title">Como conectar sua planilha (uma vez só)</p>
-    <ol>
-      <li>Na sua Google Sheets, use o mesmo cabeçalho do CSV que este painel exporta: <code>Nome; Setor; Cidade; Endereço; Telefone; Website; Avaliação; Nº Avaliações; Status; Link Maps</code></li>
-      <li>Cada novo scrap: cole/importe as linhas novas nessa aba (Arquivo → Importar, ou copiar e colar).</li>
-      <li>No Sheets: <b>Arquivo → Compartilhar → Publicar na Web</b> → selecione a aba certa → formato <b>CSV</b> → clique em Publicar.</li>
-      <li>Copie o link gerado (algo como <code>https://docs.google.com/spreadsheets/d/e/.../pub?output=csv</code>) e cole no campo acima.</li>
-      <li>Pronto — toda vez que você atualizar a planilha, é só clicar em "Atualizar" aqui no painel.</li>
-    </ol>
-    <p class="howto-note">O link fica salvo neste painel, então você só faz esse passo uma vez.</p>
-    <p class="howto-title" style="margin-top:16px;">Como ativar a escrita de status na planilha:</p>
-    <ol>
-      <li>Na sua Google Sheets: <b>Extensões → Apps Script</b>.</li>
-      <li>Apague o conteúdo padrão e cole o código que te enviei (arquivo <code>Code.gs</code>).</li>
-      <li><b>Implantar → Nova implantação</b> → tipo "App da Web" → Executar como "Eu" → Quem pode acessar "Qualquer pessoa" → Implantar.</li>
-      <li>Copie a URL gerada (termina em <code>/exec</code>) e cole no campo "Escrever status de volta na planilha" acima → Salvar.</li>
-      <li>Pronto — a partir de agora, toda mudança de status no painel grava direto na coluna Status da planilha.</li>
-    </ol>
+    <div class="howto" id="howtoBox" style="display:none;">
+      <p class="howto-title">Como conectar sua planilha (uma vez só)</p>
+      <ol>
+        <li>Na sua Google Sheets, use o mesmo cabeçalho do CSV que este painel exporta: <code>Nome; Setor; Cidade; Endereço; Telefone; Website; Avaliação; Nº Avaliações; Status; Link Maps</code></li>
+        <li>Cada novo scrap: cole/importe as linhas novas nessa aba (Arquivo → Importar, ou copiar e colar).</li>
+        <li>No Sheets: <b>Arquivo → Compartilhar → Publicar na Web</b> → selecione a aba certa → formato <b>CSV</b> → clique em Publicar.</li>
+        <li>Copie o link gerado (algo como <code>https://docs.google.com/spreadsheets/d/e/.../pub?output=csv</code>) e cole no campo acima.</li>
+        <li>Pronto — toda vez que você atualizar a planilha, é só clicar em "Atualizar" aqui no painel.</li>
+      </ol>
+      <p class="howto-note">O link fica salvo neste painel, então você só faz esse passo uma vez.</p>
+      <p class="howto-title" style="margin-top:16px;">Como ativar a escrita de status na planilha:</p>
+      <ol>
+        <li>Na sua Google Sheets: <b>Extensões → Apps Script</b>.</li>
+        <li>Apague o conteúdo padrão e cole o código que te enviei (arquivo <code>Code.gs</code>).</li>
+        <li><b>Implantar → Nova implantação</b> → tipo "App da Web" → Executar como "Eu" → Quem pode acessar "Qualquer pessoa" → Implantar.</li>
+        <li>Copie a URL gerada (termina em <code>/exec</code>) e cole no campo "Escrever status de volta na planilha" acima → Salvar.</li>
+        <li>Pronto — a partir de agora, toda mudança de status no painel grava direto na coluna Status da planilha.</li>
+      </ol>
+    </div>
   </div>
 
   <div class="manifesto">
@@ -464,7 +550,9 @@
   </div>
 
   <div class="layout">
-    <aside class="sidebar">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <aside class="sidebar" id="sidebar">
+      <button class="sidebar-close" id="sidebarClose" aria-label="Fechar filtros">✕</button>
       <div class="sb-section">
         <p class="sb-title">Setor</p>
         <div id="sectorList"></div>
@@ -592,6 +680,7 @@ function buildSectorList(){
       state.sector = el.getAttribute('data-sector');
       currentPage = 1;
       render();
+      closeSidebar();
     });
   });
 }
@@ -615,6 +704,7 @@ function buildStatusList(){
       state.status = el.getAttribute('data-status');
       currentPage = 1;
       render();
+      closeSidebar();
     });
   });
 }
@@ -803,6 +893,37 @@ function render(){
   renderStats();
 }
 
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const sidebarClose = document.getElementById('sidebarClose');
+
+function openSidebar(){
+  sidebar.classList.add('open');
+  sidebarBackdrop.classList.add('open');
+  menuToggle.setAttribute('aria-expanded', 'true');
+  document.body.style.overflow = 'hidden';
+}
+function closeSidebar(){
+  sidebar.classList.remove('open');
+  sidebarBackdrop.classList.remove('open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+  document.body.style.overflow = '';
+}
+menuToggle.addEventListener('click', () => {
+  sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+});
+sidebarBackdrop.addEventListener('click', closeSidebar);
+sidebarClose.addEventListener('click', closeSidebar);
+
+const connToggle = document.getElementById('connToggle');
+const connectionsPanel = document.getElementById('connectionsPanel');
+
+connToggle.addEventListener('click', () => {
+  const isOpen = connectionsPanel.classList.toggle('open');
+  connToggle.setAttribute('aria-expanded', String(isOpen));
+});
+
 document.getElementById('searchInput').addEventListener('input', (e) => {
   state.search = e.target.value;
   currentPage = 1;
@@ -812,6 +933,7 @@ document.getElementById('sortSelect').addEventListener('change', (e) => {
   state.sort = e.target.value;
   currentPage = 1;
   renderTable();
+  closeSidebar();
 });
 document.getElementById('exportBtn').addEventListener('click', exportCsv);
 
